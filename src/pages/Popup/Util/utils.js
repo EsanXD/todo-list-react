@@ -1,4 +1,5 @@
 export const createTaskList = (category, color) => {
+  console.log('create a list');
   return {
     category,
     color,
@@ -6,12 +7,10 @@ export const createTaskList = (category, color) => {
   };
 };
 
-export const addTask = (list, task) => {
-  list.items.push(task);
-};
-
-export const createTask = (desc, dateIns, dateDue, isDone) => {
+export const createTask = (label, desc, dateIns, dateDue, isDone) => {
+  console.log('created');
   return {
+    label,
     desc,
     dateIns,
     dateDue,

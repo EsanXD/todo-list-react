@@ -1,32 +1,43 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import {
-  Button,
   Card,
   CardMedia,
   CardContent,
   Typography,
-  Popover,
+  Paper,
+  List,
+  ListItemButton,
+  ListItemText,
+  Collapse,
 } from '@mui/material';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import { addTask, createTask, createTaskList } from './Util/utils';
 import { AddButton } from './components/addButton';
 
 const Popup = () => {
-  // chrome.storage.sync.set({ key: {} }).then(() => {
-  //   console.log('Value is set');
-  // });
-
-  // chrome.storage.sync.get(['list']).then((result) => {
-  //   console.log('Value currently is ' + result.key);
-  // });
-
-  const [list, setList] = useState({});
+  const [list, setList] = useState([]);
+  const [open, setOpen] = useState(-1);
+  const [addOpen, setAddOpen] = useState(false);
 
   useEffect(() => {
-    chrome.storage.sync.get('list', (result) => {
-      setList(result.key);
-    });
+    getFromStorage();
   }, []);
+
+  var intervalID = window.setInterval(() => {
+    getFromStorage();
+  }, 500);
+
+  const getFromStorage = () => {
+    chrome.storage.sync.get('categories', (result) => {
+      setList(result.categories);
+    });
+  };
+
+  const handleClick = (ind) => {
+    setOpen(open === ind ? -1 : ind);
+  };
 
   return (
     <Card sx={{ maxWidth: 600 }} style={{ backgroundColor: '#b0eafe' }}>
@@ -44,8 +55,43 @@ const Popup = () => {
           }}
         >
           <Typography variant="h4">Todo List</Typography>
-          <AddButton />
+          <AddButton setOpen={setAddOpen} />
         </div>
+        <Paper style={{ height: 350 }}>
+          <List
+            component="nav"
+            aria-labelledby="nested-list-subheader"
+            style={{ padding: 0 }}
+          >
+            {list.map((cat, ind) => {
+              return (
+                <>
+                  <ListItemButton
+                    onClick={() => handleClick(ind)}
+                    style={{ backgroundColor: cat.color }}
+                  >
+                    <ListItemText primary={cat.category} />
+                    {open === ind ? <ExpandLess /> : <ExpandMore />}
+                  </ListItemButton>
+                  {cat.items.map((item, jdx) => {
+                    return (
+                      <Collapse in={open === ind} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                          <ListItemButton
+                            sx={{ pl: 4 }}
+                            style={{ backgroundColor: cat.color }}
+                          >
+                            <ListItemText primary={item.label} />
+                          </ListItemButton>
+                        </List>
+                      </Collapse>
+                    );
+                  })}
+                </>
+              );
+            })}
+          </List>
+        </Paper>
       </CardContent>
     </Card>
   );
