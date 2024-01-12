@@ -14,7 +14,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { DateTime } from 'luxon';
 
-export const AddButton = (setOpen) => {
+export const AddButton = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const [categories, setCategories] = React.useState([]);
@@ -52,13 +52,11 @@ export const AddButton = (setOpen) => {
         false
       );
 
-      let list = [];
-      let color = '';
-      let categories = [];
-
-      const result = await chrome.storage.sync.get('categories');
-      categories = result.categories;
-      const category = categories.find((ele) => ele.category === categoryValue);
+      const result = await chrome.storage.local.get('categories');
+      let categories = result.categories ?? [];
+      const category = categories
+        ? categories.find((ele) => ele.category === categoryValue)
+        : [];
       if (category) {
         category.items.push(task);
       } else {
@@ -66,10 +64,10 @@ export const AddButton = (setOpen) => {
         newList.items.push(task);
         categories = [...categories, newList];
       }
-      await chrome.storage.sync.set({
+      await chrome.storage.local.set({
         categories: categories,
       });
-      setOpen(false);
+      handleClose();
     }
     //toast not enough data
   };
@@ -78,13 +76,12 @@ export const AddButton = (setOpen) => {
   const id = open ? 'simple-popover' : undefined;
 
   useEffect(() => {
-    chrome.storage.sync.get('categories', (result) => {
-      console.log(result);
-      const list = result.flatmap((cat) => {
-        console.log(cat);
-        return cat.category;
-      });
-      console.log(list);
+    chrome.storage.local.get('categories', (result) => {
+      const list = result
+        ? result.flatmap((cat) => {
+            return cat.category;
+          })
+        : [];
       setCategories(list);
     });
   }, []);
